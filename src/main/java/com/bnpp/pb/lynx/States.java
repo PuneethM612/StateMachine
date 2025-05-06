@@ -2,6 +2,8 @@ package com.bnpp.pb.lynx;
 
 public enum States {
     START,
-    MID,
-    END
+    PROCESSING,
+    VALIDATING,
+    END,
+    ERROR
 } 

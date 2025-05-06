@@ -1,6 +1,8 @@
 package com.bnpp.pb.lynx;
 
 public enum Events {
-    TO_MID,
-    TO_END
+    START_PROCESS,
+    CONTINUE_PROCESS,
+    FINISH_PROCESS,
+    ERROR_OCCURRED
 } 
