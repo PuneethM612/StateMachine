@@ -20,6 +20,7 @@ import org.springframework.statemachine.persist.DefaultStateMachinePersister;
 import org.springframework.statemachine.persist.StateMachinePersister;
 import org.springframework.statemachine.state.State;
 import org.springframework.statemachine.transition.Transition;
+import reactor.core.publisher.Mono;
 
 import java.util.EnumSet;
 import java.util.Random;
@@ -117,12 +118,12 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
                 // Simulate processing work
                 Thread.sleep(1000);
                 log.info("Processing complete, triggering next step");
-                context.getStateMachine().sendEvent(Events.CONTINUE_PROCESS);
+                context.getStateMachine().sendEvent(Mono.just(Events.CONTINUE_PROCESS)).subscribe();
             } catch (Exception e) {
                 log.error("Error in processing", e);
                 context.getStateMachine().getExtendedState().getVariables()
                     .put("ERROR_MESSAGE", "Processing failed: " + e.getMessage());
-                context.getStateMachine().sendEvent(Events.ERROR_OCCURRED);
+                context.getStateMachine().sendEvent(Mono.just(Events.ERROR_OCCURRED)).subscribe();
             }
         };
     }
@@ -134,12 +135,12 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
                 // Simulate validation
                 Thread.sleep(1000);
                 log.info("Validation complete, triggering completion");
-                context.getStateMachine().sendEvent(Events.FINISH_PROCESS);
+                context.getStateMachine().sendEvent(Mono.just(Events.FINISH_PROCESS)).subscribe();
             } catch (Exception e) {
                 log.error("Error in validation", e);
                 context.getStateMachine().getExtendedState().getVariables()
                     .put("ERROR_MESSAGE", "Validation failed: " + e.getMessage());
-                context.getStateMachine().sendEvent(Events.ERROR_OCCURRED);
+                context.getStateMachine().sendEvent(Mono.just(Events.ERROR_OCCURRED)).subscribe();
             }
         };
     }
@@ -153,7 +154,7 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
                 log.warn("Validation guard check failed");
                 context.getStateMachine().getExtendedState().getVariables()
                     .put("ERROR_MESSAGE", "Validation guard check failed - random condition");
-                context.getStateMachine().sendEvent(Events.ERROR_OCCURRED);
+                context.getStateMachine().sendEvent(Mono.just(Events.ERROR_OCCURRED)).subscribe();
             }
             return valid;
         };
@@ -171,7 +172,7 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<States
             log.error("Error occurred during state transition", exception);
             context.getStateMachine().getExtendedState().getVariables()
                 .put("ERROR_MESSAGE", exception != null ? exception.getMessage() : "Unknown error");
-            context.getStateMachine().sendEvent(Events.ERROR_OCCURRED);
+            context.getStateMachine().sendEvent(Mono.just(Events.ERROR_OCCURRED)).subscribe();
         };
     }
 } 

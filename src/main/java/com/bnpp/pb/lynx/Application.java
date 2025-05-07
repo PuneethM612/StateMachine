@@ -1,51 +1,40 @@
 package com.bnpp.pb.lynx;
 
-import com.bnpp.pb.lynx.service.WorkflowService;
+import com.bnpp.pb.lynx.Events;
+import com.bnpp.pb.lynx.States;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
-
-import java.util.UUID;
+import org.springframework.statemachine.StateMachine;
+import reactor.core.publisher.Mono;
 
 @SpringBootApplication
+@RequiredArgsConstructor
 @Slf4j
 public class Application {
+
+    private final StateMachine<States, Events> stateMachine;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 
     @Bean
-    @Profile("!production")
-    public CommandLineRunner demoRunner(WorkflowService workflowService) {
+    public CommandLineRunner demo() {
         return args -> {
-            log.info("=== Running State Machine Demo ===");
+            log.info("Starting state machine demo...");
             
-            // Create a unique ID for this workflow instance
-            String machineId = UUID.randomUUID().toString();
-            log.info("Created workflow with ID: {}", machineId);
+            // Start the state machine
+            stateMachine.startReactively().subscribe();
             
-            // Start the workflow
-            log.info("Starting workflow...");
-            States currentState = workflowService.startProcess(machineId);
-            log.info("Current state after starting: {}", currentState);
+            // Send events to trigger state transitions
+            stateMachine.sendEvent(Mono.just(Events.START_PROCESS)).subscribe();
             
-            // Wait for the workflow to complete or reach error state
-            while (!isTerminalState(currentState)) {
-                Thread.sleep(1000);
-                currentState = workflowService.getCurrentState(machineId);
-                log.info("Current state: {}", currentState);
-            }
-            
-            log.info("Workflow completed with final state: {}", currentState);
-            log.info("=== Demo Complete ===");
+            // Note: The state machine will automatically transition through the states
+            // based on the actions defined in StateMachineConfig
         };
-    }
-    
-    private boolean isTerminalState(States state) {
-        return state == States.END || state == States.ERROR;
     }
 } 
